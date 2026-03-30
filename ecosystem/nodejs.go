@@ -1,7 +1,6 @@
 package ecosystem
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,49 +22,11 @@ func (n *NodeJS) Detect(dir string) bool {
 }
 
 func (n *NodeJS) ReadVersion(dir string) (string, error) {
-	data, err := os.ReadFile(filepath.Join(dir, "package.json"))
-	if err != nil {
-		return "", err
-	}
-
-	var pkg map[string]interface{}
-	if err := json.Unmarshal(data, &pkg); err != nil {
-		return "", fmt.Errorf("invalid package.json: %w", err)
-	}
-
-	v, ok := pkg["version"].(string)
-	if !ok || v == "" {
-		return "", fmt.Errorf("no version field in package.json")
-	}
-	return v, nil
+	return readJSONVersion(dir, "package.json")
 }
 
 func (n *NodeJS) WriteVersion(dir string, version string) error {
-	path := filepath.Join(dir, "package.json")
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	replaced := false
-	result := JSONVersionRe.ReplaceAllFunc(data, func(match []byte) []byte {
-		if replaced {
-			return match
-		}
-		replaced = true
-		sub := JSONVersionRe.FindSubmatch(match)
-		return append(append(sub[1], []byte(version)...), sub[3]...)
-	})
-
-	if !replaced {
-		return fmt.Errorf("could not find version field in package.json")
-	}
-
-	return os.WriteFile(path, result, info.Mode())
+	return writeJSONVersion(dir, "package.json", version)
 }
 
 func (n *NodeJS) PackageManager(dir string) string {

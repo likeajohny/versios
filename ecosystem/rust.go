@@ -48,10 +48,6 @@ var tomlVersionRe = regexp.MustCompile(`^(version\s*=\s*")([^"]+)(")`)
 
 func (r *Rust) WriteVersion(dir string, version string) error {
 	path := filepath.Join(dir, "Cargo.toml")
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -76,6 +72,10 @@ func (r *Rust) WriteVersion(dir string, version string) error {
 		return fmt.Errorf("could not find version field in Cargo.toml [package] section")
 	}
 
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
 	return os.WriteFile(path, []byte(strings.Join(lines, "\n")), info.Mode())
 }
 

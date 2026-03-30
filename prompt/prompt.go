@@ -49,9 +49,9 @@ func Select(message string, options []string) int {
 	return result
 }
 
-// SelectMultiple presents options with an "All" choice at the top.
+// SelectOrAll presents options with an "All" choice at the top.
 // Returns indices from the original options slice.
-func SelectMultiple(message string, options []string) []int {
+func SelectOrAll(message string, options []string) []int {
 	allIndices := make([]int, len(options))
 	for i := range options {
 		allIndices[i] = i

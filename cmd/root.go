@@ -71,7 +71,7 @@ func run(cmd *cobra.Command, args []string) error {
 		if yesFlag {
 			selected = detected
 		} else {
-			indices := prompt.SelectMultiple("Multiple projects detected. Which to update?", names)
+			indices := prompt.SelectOrAll("Multiple projects detected. Which to update?", names)
 			for _, i := range indices {
 				selected = append(selected, detected[i])
 			}
