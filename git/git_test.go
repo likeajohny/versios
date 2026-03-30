@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -79,7 +80,7 @@ func TestCommitVersionBump(t *testing.T) {
 func TestCreateTagLightweight(t *testing.T) {
 	dir := setupRepo(t)
 
-	if err := CreateTag(dir, "1.0.0", false); err != nil {
+	if err := CreateTag(dir, "1.0.0", false, ""); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -98,7 +99,7 @@ func TestCreateTagLightweight(t *testing.T) {
 func TestCreateTagAnnotated(t *testing.T) {
 	dir := setupRepo(t)
 
-	if err := CreateTag(dir, "2.0.0", true); err != nil {
+	if err := CreateTag(dir, "2.0.0", true, ""); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -111,5 +112,25 @@ func TestCreateTagAnnotated(t *testing.T) {
 	catOut, _ := exec.Command("git", "-C", dir, "cat-file", "-t", "v2.0.0").Output()
 	if got := string(catOut); got != "tag\n" {
 		t.Errorf("expected annotated tag (tag), got %q", got)
+	}
+}
+
+func TestCreateTagAnnotatedWithMessage(t *testing.T) {
+	dir := setupRepo(t)
+
+	if err := CreateTag(dir, "3.0.0", true, "Release 3.0.0"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Annotated tags have type "tag"
+	catOut, _ := exec.Command("git", "-C", dir, "cat-file", "-t", "v3.0.0").Output()
+	if got := string(catOut); got != "tag\n" {
+		t.Errorf("expected annotated tag (tag), got %q", got)
+	}
+
+	// Verify custom message
+	msgOut, _ := exec.Command("git", "-C", dir, "tag", "-l", "-n1", "v3.0.0").Output()
+	if !strings.Contains(string(msgOut), "Release 3.0.0") {
+		t.Errorf("expected message containing 'Release 3.0.0', got %q", string(msgOut))
 	}
 }

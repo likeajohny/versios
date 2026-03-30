@@ -49,6 +49,17 @@ func Select(message string, options []string) int {
 	return result
 }
 
+func Input(message string, placeholder string) string {
+	var result string
+	err := huh.NewInput().
+		Title(message).
+		Placeholder(placeholder).
+		Value(&result).
+		Run()
+	checkAbort(err)
+	return result
+}
+
 // SelectOrAll presents options with an "All" choice at the top.
 // Returns indices from the original options slice.
 func SelectOrAll(message string, options []string) []int {

@@ -34,11 +34,15 @@ func CommitVersionBump(dir string, version string, files []string) error {
 	return nil
 }
 
-func CreateTag(dir string, version string, annotated bool) error {
+func CreateTag(dir string, version string, annotated bool, message string) error {
 	tag := "v" + version
 	var cmd *exec.Cmd
 	if annotated {
-		cmd = exec.Command("git", "-C", dir, "tag", "-a", tag, "-m", tag)
+		msg := tag
+		if message != "" {
+			msg = message
+		}
+		cmd = exec.Command("git", "-C", dir, "tag", "-a", tag, "-m", msg)
 	} else {
 		cmd = exec.Command("git", "-C", dir, "tag", tag)
 	}

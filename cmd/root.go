@@ -199,15 +199,20 @@ func run(cmd *cobra.Command, args []string) error {
 			}
 
 			annotated := true // default to annotated
+			var tagMessage string
 			if !yesFlag {
 				tagType := prompt.Select("Tag type?", []string{
 					"Annotated (recommended)",
 					"Lightweight",
 				})
 				annotated = tagType == 0
+
+				if annotated {
+					tagMessage = prompt.Input("Tag message?", target.StringWithV())
+				}
 			}
 
-			if err := git.CreateTag(dir, target.String(), annotated); err != nil {
+			if err := git.CreateTag(dir, target.String(), annotated, tagMessage); err != nil {
 				fmt.Fprintf(os.Stderr, "  ⚠ Git tag failed: %v\n", err)
 			} else {
 				kind := "annotated"
