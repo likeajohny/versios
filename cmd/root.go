@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -82,7 +83,17 @@ func run(cmd *cobra.Command, args []string) error {
 	// semantic bump keywords (major/minor/patch) and safety warnings.
 	refEco := selected[0]
 	currentStr, err := refEco.ReadVersion(dir)
-	if err != nil {
+	if errors.Is(err, ecosystem.ErrNoVersion) {
+		if len(args) == 0 {
+			return fmt.Errorf("no version field in %s", refEco.ManifestFile())
+		}
+		addVersion := yesFlag || prompt.Confirm(
+			fmt.Sprintf("No version field in %s. Add it?", refEco.ManifestFile()), true)
+		if !addVersion {
+			return fmt.Errorf("no version field in %s", refEco.ManifestFile())
+		}
+		currentStr = "0.0.0"
+	} else if err != nil {
 		return fmt.Errorf("could not read version from %s: %w", refEco.Name(), err)
 	}
 

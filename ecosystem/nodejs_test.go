@@ -1,6 +1,7 @@
 package ecosystem
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,6 +50,9 @@ func TestNodeJSReadVersionMissing(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for missing version field")
 	}
+	if !errors.Is(err, ErrNoVersion) {
+		t.Errorf("expected ErrNoVersion, got %v", err)
+	}
 }
 
 func TestNodeJSWriteVersion(t *testing.T) {
@@ -74,6 +78,38 @@ func TestNodeJSWriteVersion(t *testing.T) {
 		t.Errorf("version not updated: got %q", v)
 	}
 
+	if !strings.Contains(content, `"name": "my-app"`) {
+		t.Error("other fields should be preserved")
+	}
+	if !strings.Contains(content, `"description": "test"`) {
+		t.Error("other fields should be preserved")
+	}
+}
+
+func TestNodeJSWriteVersionMissing(t *testing.T) {
+	dir := t.TempDir()
+	n := &NodeJS{}
+
+	original := `{
+  "name": "my-app",
+  "description": "test"
+}`
+	os.WriteFile(filepath.Join(dir, "package.json"), []byte(original), 0644)
+
+	if err := n.WriteVersion(dir, "1.0.0"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	v, err := n.ReadVersion(dir)
+	if err != nil {
+		t.Fatalf("could not read back version: %v", err)
+	}
+	if v != "1.0.0" {
+		t.Errorf("got %q, want %q", v, "1.0.0")
+	}
+
+	data, _ := os.ReadFile(filepath.Join(dir, "package.json"))
+	content := string(data)
 	if !strings.Contains(content, `"name": "my-app"`) {
 		t.Error("other fields should be preserved")
 	}

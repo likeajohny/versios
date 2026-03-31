@@ -2,10 +2,12 @@ package ecosystem
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 type LockStrategy string
@@ -20,6 +22,8 @@ type LockFileOption struct {
 	Strategy LockStrategy
 	Command  []string // e.g. ["pnpm", "install"], nil for none
 }
+
+var ErrNoVersion = errors.New("no version field")
 
 var jsonVersionRe = regexp.MustCompile(`("version"\s*:\s*")([^"]+)(")`)
 
@@ -48,7 +52,7 @@ func readJSONVersion(dir, filename string) (string, error) {
 
 	v, ok := pkg["version"].(string)
 	if !ok || v == "" {
-		return "", fmt.Errorf("no version field in %s", filename)
+		return "", fmt.Errorf("%s: %w", filename, ErrNoVersion)
 	}
 	return v, nil
 }
@@ -73,7 +77,10 @@ func writeJSONVersion(dir, filename, version string) error {
 	})
 
 	if !replaced {
-		return fmt.Errorf("could not find version field in %s", filename)
+		result, err = insertJSONVersion(data, version)
+		if err != nil {
+			return fmt.Errorf("could not add version field to %s: %w", filename, err)
+		}
 	}
 
 	info, err := os.Stat(path)
@@ -81,4 +88,34 @@ func writeJSONVersion(dir, filename, version string) error {
 		return err
 	}
 	return os.WriteFile(path, result, info.Mode())
+}
+
+// insertJSONVersion inserts a "version" field into a JSON file that doesn't have one.
+func insertJSONVersion(data []byte, version string) ([]byte, error) {
+	s := string(data)
+	braceIdx := strings.Index(s, "{")
+	if braceIdx < 0 {
+		return nil, fmt.Errorf("no opening brace found")
+	}
+
+	nlIdx := strings.Index(s[braceIdx:], "\n")
+	if nlIdx < 0 {
+		// Single-line JSON like `{"name": "test"}` — expand it
+		return []byte(fmt.Sprintf("{\n  \"version\": \"%s\",\n  %s\n}", version, strings.TrimSpace(s[braceIdx+1:len(s)-1]))), nil
+	}
+
+	insertPos := braceIdx + nlIdx + 1
+
+	// Detect indentation from the next non-empty line
+	indent := "  "
+	for i := insertPos; i < len(s); i++ {
+		if s[i] == ' ' || s[i] == '\t' {
+			continue
+		}
+		indent = s[insertPos:i]
+		break
+	}
+
+	line := fmt.Sprintf("%s\"version\": \"%s\",\n", indent, version)
+	return []byte(s[:insertPos] + line + s[insertPos:]), nil
 }
