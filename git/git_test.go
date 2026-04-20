@@ -80,7 +80,7 @@ func TestCommitVersionBump(t *testing.T) {
 func TestCreateTagLightweight(t *testing.T) {
 	dir := setupRepo(t)
 
-	if err := CreateTag(dir, "1.0.0", false, ""); err != nil {
+	if err := CreateTag(dir, "v1.0.0", false, ""); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -99,7 +99,7 @@ func TestCreateTagLightweight(t *testing.T) {
 func TestCreateTagAnnotated(t *testing.T) {
 	dir := setupRepo(t)
 
-	if err := CreateTag(dir, "2.0.0", true, ""); err != nil {
+	if err := CreateTag(dir, "v2.0.0", true, ""); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -118,7 +118,7 @@ func TestCreateTagAnnotated(t *testing.T) {
 func TestCreateTagAnnotatedWithMessage(t *testing.T) {
 	dir := setupRepo(t)
 
-	if err := CreateTag(dir, "3.0.0", true, "Release 3.0.0"); err != nil {
+	if err := CreateTag(dir, "v3.0.0", true, "Release 3.0.0"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -133,4 +133,42 @@ func TestCreateTagAnnotatedWithMessage(t *testing.T) {
 	if !strings.Contains(string(msgOut), "Release 3.0.0") {
 		t.Errorf("expected message containing 'Release 3.0.0', got %q", string(msgOut))
 	}
+}
+
+func TestLatestVersionTagPlain(t *testing.T) {
+	dir := setupRepo(t)
+
+	run(t, dir, "git", "tag", "1.0.0")
+	tag, err := LatestVersionTag(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if tag != "1.0.0" {
+		t.Errorf("got %q, want %q", tag, "1.0.0")
+	}
+}
+
+func TestDetectTagPrefix(t *testing.T) {
+	t.Run("v-prefixed tags", func(t *testing.T) {
+		dir := setupRepo(t)
+		run(t, dir, "git", "tag", "v1.0.0")
+		if got := DetectTagPrefix(dir); got != "v" {
+			t.Errorf("got %q, want %q", got, "v")
+		}
+	})
+
+	t.Run("plain tags", func(t *testing.T) {
+		dir := setupRepo(t)
+		run(t, dir, "git", "tag", "1.0.0")
+		if got := DetectTagPrefix(dir); got != "" {
+			t.Errorf("got %q, want %q", got, "")
+		}
+	})
+
+	t.Run("no tags defaults to v", func(t *testing.T) {
+		dir := setupRepo(t)
+		if got := DetectTagPrefix(dir); got != "v" {
+			t.Errorf("got %q, want %q", got, "v")
+		}
+	})
 }

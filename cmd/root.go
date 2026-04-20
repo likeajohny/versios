@@ -199,7 +199,10 @@ func run(cmd *cobra.Command, args []string) error {
 
 	// Git operations (once for all ecosystems)
 	if git.IsRepo(dir) {
-		doGit := yesFlag || prompt.Confirm("Create git commit and tag?", true)
+		prefix := git.DetectTagPrefix(dir)
+		tagName := prefix + target.String()
+
+		doGit := yesFlag || prompt.Confirm(fmt.Sprintf("Create git commit and tag (%s)?", tagName), true)
 		if doGit {
 			if len(changedFiles) > 0 {
 				if err := git.CommitVersionBump(dir, target.String(), changedFiles); err != nil {
@@ -219,18 +222,18 @@ func run(cmd *cobra.Command, args []string) error {
 				annotated = tagType == 0
 
 				if annotated {
-					tagMessage = prompt.Input("Tag message?", target.StringWithV())
+					tagMessage = prompt.Input("Tag message?", tagName)
 				}
 			}
 
-			if err := git.CreateTag(dir, target.String(), annotated, tagMessage); err != nil {
+			if err := git.CreateTag(dir, tagName, annotated, tagMessage); err != nil {
 				fmt.Fprintf(os.Stderr, "  ⚠ Git tag failed: %v\n", err)
 			} else {
 				kind := "annotated"
 				if !annotated {
 					kind = "lightweight"
 				}
-				fmt.Fprintf(os.Stderr, "  ✓ Created %s tag: %s\n", kind, target.StringWithV())
+				fmt.Fprintf(os.Stderr, "  ✓ Created %s tag: %s\n", kind, tagName)
 			}
 		}
 	}

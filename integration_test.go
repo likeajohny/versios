@@ -225,6 +225,35 @@ func TestIntegrationMultiEcosystem(t *testing.T) {
 	}
 }
 
+func TestIntegrationPlainTagConvention(t *testing.T) {
+	bin := buildVrs(t)
+	dir := t.TempDir()
+
+	os.WriteFile(filepath.Join(dir, "package.json"), []byte(`{
+  "name": "test-app",
+  "version": "1.2.3"
+}`), 0644)
+	setupGitDir(t, dir)
+	gitRun(t, dir, "tag", "1.2.3") // establish plain convention
+
+	_, stderr, code := runVrs(t, bin, dir, "patch", "--yes")
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d\nstderr: %s", code, stderr)
+	}
+
+	// Should use plain tag (no v prefix)
+	out, _ := exec.Command("git", "-C", dir, "tag", "-l", "1.2.4").Output()
+	if strings.TrimSpace(string(out)) != "1.2.4" {
+		t.Error("expected git tag 1.2.4 (plain, no v prefix)")
+	}
+
+	// Should NOT have created a v-prefixed tag
+	vOut, _ := exec.Command("git", "-C", dir, "tag", "-l", "v1.2.4").Output()
+	if strings.TrimSpace(string(vOut)) != "" {
+		t.Error("should not have created v-prefixed tag v1.2.4")
+	}
+}
+
 func TestIntegrationGoProject(t *testing.T) {
 	bin := buildVrs(t)
 	dir := t.TempDir()

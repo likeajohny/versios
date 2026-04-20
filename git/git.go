@@ -12,11 +12,30 @@ func IsRepo(dir string) bool {
 }
 
 func LatestVersionTag(dir string) (string, error) {
+	// Try v-prefixed tags first
 	out, err := exec.Command("git", "-C", dir, "describe", "--tags", "--abbrev=0", "--match", "v*").Output()
-	if err != nil {
-		return "", fmt.Errorf("no version tags found")
+	if err == nil {
+		return strings.TrimSpace(string(out)), nil
 	}
-	return strings.TrimSpace(string(out)), nil
+
+	// Fall back to plain numeric tags
+	out, err = exec.Command("git", "-C", dir, "describe", "--tags", "--abbrev=0", "--match", "[0-9]*").Output()
+	if err == nil {
+		return strings.TrimSpace(string(out)), nil
+	}
+
+	return "", fmt.Errorf("no version tags found")
+}
+
+func DetectTagPrefix(dir string) string {
+	tag, err := LatestVersionTag(dir)
+	if err != nil {
+		return "v"
+	}
+	if strings.HasPrefix(tag, "v") {
+		return "v"
+	}
+	return ""
 }
 
 func CommitVersionBump(dir string, version string, files []string) error {
@@ -34,8 +53,7 @@ func CommitVersionBump(dir string, version string, files []string) error {
 	return nil
 }
 
-func CreateTag(dir string, version string, annotated bool, message string) error {
-	tag := "v" + version
+func CreateTag(dir string, tag string, annotated bool, message string) error {
 	var cmd *exec.Cmd
 	if annotated {
 		msg := tag
