@@ -29,7 +29,7 @@ Package manager is auto-detected (e.g., `pnpm-lock.yaml` present = pnpm).
 - **Zero config** -- just run `vrs` in any supported project directory
 - **Safety warnings** -- alerts on major version bumps, downgrades, and pre-release versions
 - **Lock file awareness** -- offers to run the appropriate install command after bumping
-- **Git integration** -- optional commit + tag (annotated or lightweight) after bumping
+- **Git integration** -- optional commit + tag (annotated or lightweight) after bumping; auto-detects existing tag prefix convention (`v1.2.3` vs `1.2.3`)
 - **Multi-ecosystem** -- if multiple manifests are found, choose which to update or pick "All"
 - **CI-friendly** -- `--yes` flag skips all prompts, bumps all detected ecosystems
 
@@ -72,11 +72,13 @@ $ vrs 2.0.0
 
   Running pnpm install... done
 
-  Create git commit and tag? Yes / No
+  Create git commit and tag (v2.0.0)? Yes / No
 
   Tag type?
   > Annotated (recommended)
     Lightweight
+
+  Tag message? v2.0.0
 
   Created commit: "bump version to 2.0.0"
   Created annotated tag: v2.0.0
