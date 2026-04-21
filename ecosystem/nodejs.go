@@ -61,6 +61,7 @@ func (n *NodeJS) LockFileOptions(dir string) []LockFileOption {
 			Label:    fmt.Sprintf("Run `%s install` (recommended)", pm),
 			Strategy: LockRunInstall,
 			Command:  []string{pm, "install"},
+			LockFile: lockFile,
 		},
 		{
 			Label:    "Skip",

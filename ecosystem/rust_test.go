@@ -105,6 +105,9 @@ func TestRustLockFileOptions(t *testing.T) {
 	if len(opts) != 2 {
 		t.Fatalf("expected 2 options, got %d", len(opts))
 	}
+	if opts[0].LockFile != "Cargo.lock" {
+		t.Errorf("expected lock file Cargo.lock, got %s", opts[0].LockFile)
+	}
 
 	dir2 := t.TempDir()
 	if opts := r.LockFileOptions(dir2); opts != nil {

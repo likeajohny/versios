@@ -21,6 +21,7 @@ type LockFileOption struct {
 	Label    string
 	Strategy LockStrategy
 	Command  []string // e.g. ["pnpm", "install"], nil for none
+	LockFile string   // filename relative to project root, e.g. "package-lock.json"
 }
 
 var ErrNoVersion = errors.New("no version field")

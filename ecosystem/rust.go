@@ -91,6 +91,7 @@ func (r *Rust) LockFileOptions(dir string) []LockFileOption {
 			Label:    "Run `cargo update` (recommended)",
 			Strategy: LockRunInstall,
 			Command:  []string{"cargo", "update"},
+			LockFile: "Cargo.lock",
 		},
 		{
 			Label:    "Skip",

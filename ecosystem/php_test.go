@@ -79,6 +79,9 @@ func TestPHPLockFileOptions(t *testing.T) {
 	if len(opts) != 2 {
 		t.Fatalf("expected 2 options, got %d", len(opts))
 	}
+	if opts[0].LockFile != "composer.lock" {
+		t.Errorf("expected lock file composer.lock, got %s", opts[0].LockFile)
+	}
 
 	dir2 := t.TempDir()
 	if opts := p.LockFileOptions(dir2); opts != nil {

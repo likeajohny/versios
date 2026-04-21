@@ -161,6 +161,9 @@ func TestNodeJSLockFileOptions(t *testing.T) {
 	if opts[0].Strategy != LockRunInstall {
 		t.Error("first option should be run_install")
 	}
+	if opts[0].LockFile != "pnpm-lock.yaml" {
+		t.Errorf("expected lock file pnpm-lock.yaml, got %s", opts[0].LockFile)
+	}
 
 	// Without lock file
 	dir2 := t.TempDir()

@@ -40,6 +40,7 @@ func (p *PHP) LockFileOptions(dir string) []LockFileOption {
 			Label:    "Run `composer update --lock` (recommended)",
 			Strategy: LockRunInstall,
 			Command:  []string{"composer", "update", "--lock"},
+			LockFile: "composer.lock",
 		},
 		{
 			Label:    "Skip",

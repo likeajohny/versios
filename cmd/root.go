@@ -192,6 +192,7 @@ func run(cmd *cobra.Command, args []string) error {
 					fmt.Fprintf(os.Stderr, "  ⚠ %s failed: %v (version file was still updated)\n", strings.Join(sel.Command, " "), err)
 				} else {
 					fmt.Fprintf(os.Stderr, "  ✓ Lock file updated\n")
+					changedFiles = append(changedFiles, sel.LockFile)
 				}
 			}
 		}
